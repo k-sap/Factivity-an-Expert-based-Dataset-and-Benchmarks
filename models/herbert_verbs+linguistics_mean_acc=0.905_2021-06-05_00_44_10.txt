@@ -1,0 +1,42 @@
+19 epok
+0.25 dropout
+50 batch
+128 hidden size
+0.001 learning rate
+
+INPUT:
+    herBERT embedding samego czasownika 768
+    linguistics features 349
+
+{'acc_C': 0.4693877398967743,
+ 'acc_E': 0.9242820143699646,
+ 'acc_N': 0.9263622760772705,
+ 'acc': 0.9054905772209167,
+ 'f1': 0.9036106338536603}
+
+ class BaseNet(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(BaseNet, self).__init__()
+        self.input_size = input_size
+        self.hidden_size  = hidden_size
+        self.output_size = output_size
+        self.fc1 = nn.Linear(self.input_size, self.hidden_size)
+        self.fc2 = nn.Linear(hidden_size,hidden_size)
+        self.fc3 = nn.Linear(self.hidden_size, output_size)
+        self.dropout = nn.Dropout(0.25)
+
+
+    def forward(self,x, train=True):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        if train:
+            x = self.dropout(x)
+        output = self.fc3(x)
+        return F.log_softmax(output, dim=0)
+
+def gen_base_network(params, lr):
+    net = BaseNet(**params)
+    net.cuda()
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(net.parameters(), lr=lr)
+    return net, criterion, optimizer
